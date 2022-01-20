@@ -1,8 +1,9 @@
 import numpy as np
 from collections import defaultdict
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import v_measure_score
 
-from utils import cosine
+from utils import cosine, list_average
 
 
 class Verificator:
@@ -26,12 +27,18 @@ class Verificator:
             speaker_embeddings[label].append(embedding)
         self.speaker_labels = speaker_embeddings.keys()
         for label in self.speaker_labels:
-            self.speaker_embeddings.append(sum(speaker_embeddings[label]) / len(speaker_embeddings[label]))
+            self.speaker_embeddings.append(list_average(speaker_embeddings[label]))
 
-    def enroll(self, embeddings, labels):
-        self.enroll_check(embeddings, labels)
+    def check_labels(labels_true, labels_pred):
+        equal_len = len(np.unique(labels_true)) == len(np.unique(labels_pred))
+        return equal_len and v_measure_score(labels_true, labels_pred) > 0.95
+
+    def enroll(self, embeddings, labels, check_labels=False):
+        self.check_enroll(embeddings, labels)
         labels_pred = self.enroll_predict_labels(embeddings, labels)
         self.enroll_labeled_embeddings(embeddings, labels_pred)
+        if check_labels:
+            return self.check_labels(labels, labels_pred)
 
     def verify(self, embeddings, threshold=None):
         if not self.enrolled:

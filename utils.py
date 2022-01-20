@@ -4,6 +4,10 @@ from sklearn.metrics import roc_curve
 from scipy.interpolate import interp1d
 
 
+def list_average(a):
+    return sum(a) / len(a)
+
+
 def cosine(emb1, emb2):
     return (emb1 @ emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
 
