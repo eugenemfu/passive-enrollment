@@ -1,6 +1,7 @@
+import random
 import numpy as np
 from collections import defaultdict
-from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering, MeanShift, AffinityPropagation
 from sklearn.metrics import v_measure_score
 
 from utils import cosine, list_average
@@ -79,6 +80,36 @@ class AgglomerativeVerificator(Verificator):
             linkage=self.linkage,
             distance_threshold=self.clustering_threshold)
         return model.fit_predict(embeddings, labels)
+
+
+class MeanShiftVerificator(Verificator):
+    def __init__(self, bandwidth):
+        super().__init__()
+        self.bandwidth = bandwidth
+
+    def enroll_predict_labels(self, embeddings, labels):
+        model = MeanShift(bandwidth=self.bandwidth)
+        return model.fit_predict(embeddings, labels)
+
+
+class AffinityVerificator(Verificator):
+    def __init__(self, affinity='cosine'):
+        super().__init__()
+        self.affinity = affinity
+
+    def enroll_predict_labels(self, embeddings, labels):
+        X = embeddings
+        if self.affinity == 'cosine':
+            self.affinity = 'precomputed'
+            n = len(embeddings)
+            X = np.zeros((n, n))
+            for i in range(n):
+                for j in range(i, n):
+                    cos = cosine(embeddings[i], embeddings[j])
+                    X[i, j] = cos
+                    X[j, i] = cos
+        model = AffinityPropagation(affinity=self.affinity, random_state=0)
+        return model.fit_predict(X, labels)
 
 
 
