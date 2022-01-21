@@ -25,11 +25,11 @@ class Verificator:
         speaker_embeddings = defaultdict(list)
         for embedding, label in zip(embeddings, labels):
             speaker_embeddings[label].append(embedding)
-        self.speaker_labels = speaker_embeddings.keys()
+        self.speaker_labels = list(speaker_embeddings.keys())
         for label in self.speaker_labels:
             self.speaker_embeddings.append(list_average(speaker_embeddings[label]))
 
-    def check_labels(labels_true, labels_pred):
+    def check_labels(self, labels_true, labels_pred):
         equal_len = len(np.unique(labels_true)) == len(np.unique(labels_pred))
         return equal_len and v_measure_score(labels_true, labels_pred) > 0.95
 

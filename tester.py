@@ -1,6 +1,4 @@
 import numpy as np
-from collections import defaultdict
-from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import homogeneity_completeness_v_measure
 import copy
 from tqdm import tqdm
@@ -22,15 +20,17 @@ class ClusteringTester:
              n_utts_per_user_type1=5,
              n_users_type2=0,
              n_utts_per_user_type2=0,
-             n_verify_user_utts=20,
-             n_verify_guest_utts=20,
-             n_tests=1000):
+             n_verify_user_utts=10,
+             n_verify_guest_utts=50,
+             n_tests=5000,
+             use_tqdm=False):
 
         np.random.seed(42)
         type2 = (n_users_type2 > 0)
         assert (n_users_type1 > 0 and n_utts_per_user_type1 > 0)
         if type2:
             assert n_utts_per_user_type2 > 0
+        assert max(n_utts_per_user_type1, n_utts_per_user_type2) + n_verify_user_utts < 22 #voxceleb2
 
         correct_mask = np.zeros(n_tests, dtype=bool)
         v_measures = np.zeros(n_tests)
@@ -39,7 +39,7 @@ class ClusteringTester:
         guest_detection_scores = []
         guest_detection_labels = []
 
-        for i in tqdm(range(n_tests)):
+        for i in (tqdm(range(n_tests)) if use_tqdm else range(n_tests)):
             users = np.random.choice(self.speakers, size=n_users_type1+n_users_type2, replace=False)
             if type2:
                 users_type1 = users[:n_users_type1]
@@ -66,8 +66,9 @@ class ClusteringTester:
 
             for user in users_type1:
                 add_user(user, n_utts_per_user_type1)
-            for user in users_type2:
-                add_user(user, n_utts_per_user_type2)
+            if type2:
+                for user in users_type2:
+                    add_user(user, n_utts_per_user_type2)
 
             guest_indices = np.random.choice(np.arange(0, self.n)[guest_mask], size=n_verify_guest_utts, replace=False)
 
@@ -87,7 +88,7 @@ class ClusteringTester:
         results = {
             'clustering_acc': correct_mask.mean(),
             'v_measure_total': v_measures.mean(),
-            'v_measure_correct': v_measures[correct_mask].mean(),
+            'v_measure_correct': v_measures[correct_mask].mean() if correct_mask.any() else 0.,
             'guest_detection_eer': calculate_eer(guest_detection_scores, guest_detection_labels)
         }
 
