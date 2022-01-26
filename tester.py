@@ -30,7 +30,7 @@ class ClusteringTester:
         assert (n_users_type1 > 0 and n_utts_per_user_type1 > 0)
         if type2:
             assert n_utts_per_user_type2 > 0
-        assert max(n_utts_per_user_type1, n_utts_per_user_type2) + n_verify_user_utts < 22 #voxceleb2
+        assert max(n_utts_per_user_type1, n_utts_per_user_type2) < 21 #voxceleb2
 
         correct_mask = np.zeros(n_tests, dtype=bool)
         v_measures = np.zeros(n_tests)
@@ -58,11 +58,12 @@ class ClusteringTester:
                 user_mask = (self.labels == user)
                 guest_mask[user_mask] = False
                 user_indices = np.random.permutation(np.arange(0, self.n)[user_mask])
-                assert len(user_indices) >= n_utts + n_verify_user_utts
+                assert len(user_indices) > n_utts
                 enroll_indices.extend(user_indices[:n_utts])
                 enroll_labels.extend([user] * n_utts)
-                verify_indices.extend(user_indices[-n_verify_user_utts:])
-                verify_labels.extend([user] * n_verify_user_utts)
+                n_ver = min(n_verify_user_utts, len(user_indices) - n_utts)
+                verify_indices.extend(user_indices[-n_ver:])
+                verify_labels.extend([user] * n_ver)
 
             for user in users_type1:
                 add_user(user, n_utts_per_user_type1)

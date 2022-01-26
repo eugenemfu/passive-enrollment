@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from collections import defaultdict
-from sklearn.cluster import AgglomerativeClustering, MeanShift, AffinityPropagation
+from sklearn.cluster import AgglomerativeClustering, MeanShift, AffinityPropagation, DBSCAN
 from sklearn.metrics import v_measure_score
 
 from utils import cosine, list_average
@@ -31,8 +31,10 @@ class Verificator:
             self.speaker_embeddings.append(list_average(speaker_embeddings[label]))
 
     def check_labels(self, labels_true, labels_pred):
-        equal_len = len(np.unique(labels_true)) == len(np.unique(labels_pred))
-        return equal_len and v_measure_score(labels_true, labels_pred) > 0.95
+        labels_true_ = labels_true[labels_pred != -1]
+        labels_pred_ = labels_pred[labels_pred != -1]
+        equal_len = (len(np.unique(labels_true)) == len(np.unique(labels_true_)) == len(np.unique(labels_pred_)))
+        return equal_len and v_measure_score(labels_true_, labels_pred_) > 0.99
 
     def enroll(self, embeddings, labels, check_labels=False):
         self.check_enroll(embeddings, labels)
@@ -88,7 +90,7 @@ class MeanShiftVerificator(Verificator):
         self.bandwidth = bandwidth
 
     def enroll_predict_labels(self, embeddings, labels):
-        model = MeanShift(bandwidth=self.bandwidth)
+        model = MeanShift(bandwidth=self.bandwidth, cluster_all=False)
         return model.fit_predict(embeddings, labels)
 
 
@@ -108,8 +110,16 @@ class AffinityVerificator(Verificator):
                     cos = cosine(embeddings[i], embeddings[j])
                     X[i, j] = cos
                     X[j, i] = cos
-        model = AffinityPropagation(affinity=self.affinity, random_state=0)
+        model = AffinityPropagation(damping=0.9, preference=0.77, affinity=self.affinity, random_state=0)
         return model.fit_predict(X, labels)
+        
 
+class DBSCANVerificator(Verificator):
+    def __init__(self, eps):
+        super().__init__()
+        self.eps = eps
 
+    def enroll_predict_labels(self, embeddings, labels):
+        model = DBSCAN(eps=self.eps, min_samples=3, metric='cosine')
+        return model.fit_predict(embeddings, labels)
 
