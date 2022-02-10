@@ -31,14 +31,20 @@ class Verificator:
             self.speaker_embeddings.append(list_average(speaker_embeddings[label]))
 
     def check_labels(self, labels_true, labels_pred):
-        labels_true_ = labels_true[labels_pred != -1]
-        labels_pred_ = labels_pred[labels_pred != -1]
+        np_labels_pred = np.array(labels_pred)
+        np_labels_true = np.array(labels_true)
+        labels_true_ = np_labels_true[np_labels_pred != -1]
+        labels_pred_ = np_labels_pred[np_labels_pred != -1]
+        #print(np_labels_pred != -1)
+        #print(labels_true_)
         equal_len = (len(np.unique(labels_true)) == len(np.unique(labels_true_)) == len(np.unique(labels_pred_)))
         return equal_len and v_measure_score(labels_true_, labels_pred_) > 0.99
 
     def enroll(self, embeddings, labels, check_labels=False):
         self.check_enroll(embeddings, labels)
+        #print(labels)
         labels_pred = self.enroll_predict_labels(embeddings, labels)
+        #print(labels_pred)
         self.enroll_labeled_embeddings(embeddings, labels_pred)
         if check_labels:
             return self.check_labels(labels, labels_pred)
@@ -65,7 +71,7 @@ class Verificator:
 
 class ActiveVerificator(Verificator):
     def enroll_predict_labels(self, embeddings, labels):
-        return labels
+        return np.unique(labels, return_inverse=True)[1]
 
 
 class AgglomerativeVerificator(Verificator):
@@ -110,9 +116,9 @@ class AffinityVerificator(Verificator):
                     cos = cosine(embeddings[i], embeddings[j])
                     X[i, j] = cos
                     X[j, i] = cos
-        model = AffinityPropagation(damping=0.9, preference=0.77, affinity=self.affinity, random_state=0)
+        model = AffinityPropagation(damping=0.9, affinity=self.affinity, random_state=0)
         return model.fit_predict(X, labels)
-        
+
 
 class DBSCANVerificator(Verificator):
     def __init__(self, eps):
