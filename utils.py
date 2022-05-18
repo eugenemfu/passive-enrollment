@@ -24,3 +24,14 @@ def calculate_eer(scores, labels):
     # thr1 = thr_curve(0.01)
     # thr001 = thr_curve(0.0001)
     return eer
+
+
+def get_cosine_matrix(embeddings):
+    n = len(embeddings)
+    X = np.zeros((n, n))
+    for i in range(n):
+        for j in range(i, n):
+            cos = cosine(embeddings[i], embeddings[j])
+            X[i, j] = cos
+            X[j, i] = cos
+    return X

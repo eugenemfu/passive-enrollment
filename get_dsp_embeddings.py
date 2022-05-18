@@ -1,5 +1,5 @@
-sdk_path = '../DSP_1.0/device-unlock-sdk-linux-v1.1.2-dev-phoenix-no-encryption-x64-gcc5.4-neh/'
-init_data_path = '../DSP_1.0/device-unlock-sdk-linux-v1.1.2-dev-phoenix-no-encryption-x64-gcc5.4-neh/init_data/desktop/phoenix-1.1.2'
+sdk_path = '/home/eugene/device-unlock-sdk-linux-v1.1.2-dev-phoenix-no-encryption-x64-gcc5.4-neh/'
+init_data_path = '/home/eugene/device-unlock-sdk-linux-v1.1.2-dev-phoenix-no-encryption-x64-gcc5.4-neh/init_data/desktop/phoenix-1.1.2'
 
 import sys
 import numpy as np
@@ -11,8 +11,8 @@ sys.path.append(sdk_path + '/python/%i.%i' % (sys.version_info[0], sys.version_i
 from voicesdk_iot import SessionManager, AudioType
 
 
-WAV_LIST = 'data/vox2-test.txt'
-OUTPUT = 'data/embeddings_labeled.pkl'
+WAV_LIST = 'data/vox1-test.txt'
+OUTPUT = 'data/vox1_embeddings_labeled.pkl'
 
 
 with open(WAV_LIST) as f:
